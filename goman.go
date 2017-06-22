@@ -19,7 +19,7 @@ func main() {
 		fmt.Println()
 		fmt.Println("goman <name of Go binary>")
 		fmt.Println()
-		fmt.Println("goman is man for Go binaries. It attempts to fetch the README file of a Go binary's project and displays it in the terminal, if found")
+		fmt.Println("goman is man for Go binaries. It attempts to fetch the README file of a Go binary's project and displays it in the terminal, if found.")
 		return
 	}
 
@@ -29,17 +29,30 @@ func main() {
 	path, err := getPath(exec)
 	if err != nil {
 		log.Println("Cannot determine the path of", exec)
-		log.Fatal(errors.Cause(err))
+		log.Fatalln(errors.Cause(err))
 	}
 
 	// Extract the source path from the binary
 	src, err := which.Import(path)
 	if err != nil {
 		log.Println("Cannot determine source path of", path)
-		log.Fatal(errors.Cause(err))
+		log.Fatalln(errors.Cause(err))
 	}
 
 	fmt.Println(src)
+
+	// Find the README
+	readme, isMarkdown, err := findReadme(src)
+	if err != nil {
+		log.Println("No README found for", exec, "at", src)
+		log.Fatalln(errors.Cause(err))
+	}
+
+	if isMarkdown {
+		// turn into colored ANSI text
+	}
+
+	fmt.Println(string(readme))
 
 }
 
@@ -48,15 +61,15 @@ func main() {
 func getPath(name string) (string, error) {
 
 	// Try $PATH first.
-	s := whichcmd.One(name)
+	s := whichcmd.One(name) // $ which <name>
 	if s != "" {
 		return s, nil
 	}
 
 	// Next, try $GOPATH/bin
-	path := getGOPATH()
-	for i := 0; s == "" && i < len(path); i++ {
-		s = whichcmd.OneWithPath(name, path[i]+filepath.Join("bin"))
+	paths := gopath()
+	for i := 0; s == "" && i < len(paths); i++ {
+		s = whichcmd.OneWithPath(name, paths[i]+filepath.Join("bin"))
 	}
 	if s != "" {
 		return s, nil
@@ -69,7 +82,7 @@ func getPath(name string) (string, error) {
 	}
 	s = whichcmd.OneWithPath(name, wd)
 	if s == "" {
-		return "", errors.New(name + " not found in any of " + os.Getenv("PATH") + ":" + strings.Join(path, ":"))
+		return "", errors.New(name + " not found in any of " + os.Getenv("PATH") + ":" + strings.Join(paths, ":"))
 	}
 
 	return s, nil
@@ -84,16 +97,18 @@ func pathssep() string {
 	return sep
 }
 
-// getGOPATH returns a list of paths representing the
-func getGOPATH() []string {
+// gopath returns a list of paths as defined by the GOPATH environment
+// variable, or the default gopath if $GOPATH is empty.
+func gopath() []string {
 	gp := os.Getenv("GOPATH")
 	if gp == "" {
-		return []string{defaultGOPATH()}
+		return []string{defaultGopath()}
 	}
 	return strings.Split(gp, pathssep())
 }
 
-func defaultGOPATH() string {
+// defaultGopath returns the default Go path, depending on the operating system.
+func defaultGopath() string {
 	// https://stackoverflow.com/a/32650077
 	env := "HOME"
 	if runtime.GOOS == "windows" {
@@ -111,4 +126,62 @@ func defaultGOPATH() string {
 		return def
 	}
 	return ""
+}
+
+// findReadme attempts to find the file README.md either locally
+// or in the remote repository of the executable.
+func findReadme(src string) (readme []byte, isMarkdown bool, err error) {
+	readme, isMarkdown, err = findLocalReadme(src)
+	if err == nil {
+		return readme, isMarkdown, nil
+	}
+	readme, isMarkdown, err = findRemoteReadme(src)
+	if err != nil {
+		return []byte(""), false, errors.Wrap(err, "Did not find a readme locally nor in the remote repository")
+	}
+	return readme, isMarkdown, nil
+}
+
+// findLocalReadme is a helper function for findReadme. It searches the README file
+// locally in $GOPATH/src/<src>.
+func findLocalReadme(src string) (readme []byte, isMarkdown bool, err error) {
+	for _, gp := range gopath() {
+
+		// Create the path to the README file and open the file.
+		// If this fails, try the next GOPATH entry.
+		fp := filepath.Join(gp, "src", src, "README.md") // TODO: Take other filenames into account
+		rf, err := os.Open(fp)
+		if err != nil {
+			err = errors.Wrap(err, "README not found at location "+fp)
+			_ = rf.Close()
+			continue
+		}
+
+		// Allocate the slice for reading the file.
+		fi, err := rf.Stat()
+		if err != nil {
+			return nil, false, errors.Wrap(err, "Cannot determine file stats")
+		}
+		readme = make([]byte, fi.Size())
+
+		// Read the whole file.
+		n, err := rf.Read(readme)
+		if err != nil {
+			return readme[:n], false, errors.Wrap(err, "Error reading from file "+fp)
+		}
+		err = rf.Close()
+		break
+	}
+	return readme, true, err
+}
+
+// findRemoteReadme is a helper function for findReadme. It attempts to locate the README in the remote repository identified by http(s)://<src>/blob/master/README.m
+func findRemoteReadme(src string) ([]byte, bool, error) {
+	// TODO:
+	return []byte(""), false, errors.New("Not implemented")
+}
+
+func mdToAnsi(readme string) (string, error) {
+	// TODO:
+	return "", errors.New("Not implemented")
 }
