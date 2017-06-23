@@ -8,14 +8,26 @@
   revision = "eb85e63e18a74984175ed2425b148f06a0428431"
 
 [[projects]]
-  name = "github.com/rjeczalik/which"
+  name = "github.com/ec1oud/blackfriday"
   packages = ["."]
-  revision = "e12bb5eb7e13f8265c861660435848b33f5efe6a"
-  version = "1.0.1"
+  revision = "0b647d0506a698cca42caca173e55559b12a69f2"
+  version = "v1.4"
+
+[[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/shurcooL/sanitized_anchor_name"
+  packages = ["."]
+  revision = "541ff5ee47f1dddf6a5281af78307d921524bcb5"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3a2ad4c0c6c40405c9491033235cbb193a19196c0b2fdc41d3bfa17324573c01"
+  inputs-digest = "4525c0553478915c96a9f7d3a5ae3f954398e26290f2e686113b7917eb784947"
   solver-name = "gps-cdcl"
   solver-version = 1
