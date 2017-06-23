@@ -11,6 +11,7 @@ import (
 	"debug/macho"
 	"errors"
 	"os"
+	"path/filepath"
 )
 
 func getTable(file string) (*gosym.Table, error) {
@@ -77,5 +78,5 @@ func getMainPath(file string) (string, error) {
 		return "", err
 	}
 	path, _, _ := table.PCToLine(table.LookupFunc("main.main").Entry)
-	return path, nil
+	return filepath.Dir(path), nil
 }

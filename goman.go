@@ -8,9 +8,9 @@ import (
 	"runtime"
 	"strings"
 
-	whichcmd "github.com/bfontaine/which/which"
+	"github.com/bfontaine/which/which"
+	"github.com/ec1oud/blackfriday"
 	"github.com/pkg/errors"
-	"github.com/rjeczalik/which"
 )
 
 func main() {
@@ -29,27 +29,28 @@ func main() {
 	path, err := getPath(exec)
 	if err != nil {
 		log.Println("Cannot determine the path of", exec)
-		log.Fatalln(errors.Cause(err))
+		log.Fatalln(errors.WithStack(err))
 	}
 
 	// Extract the source path from the binary
-	src, err := which.Import(path)
+	src, err := getMainPath(path)
+	// src, err := which.Import(path)
 	if err != nil {
 		log.Println("Cannot determine source path of", path)
-		log.Fatalln(errors.Cause(err))
+		log.Fatalln(errors.WithStack(err))
 	}
 
-	fmt.Println(src)
+	src = stripPath(src)
 
 	// Find the README
 	readme, isMarkdown, err := findReadme(src)
 	if err != nil {
 		log.Println("No README found for", exec, "at", src)
-		log.Fatalln(errors.Cause(err))
+		log.Fatalln(errors.WithStack(err))
 	}
 
 	if isMarkdown {
-		// turn into colored ANSI text
+		readme = mdToAnsi(readme)
 	}
 
 	fmt.Println(string(readme))
@@ -61,7 +62,7 @@ func main() {
 func getPath(name string) (string, error) {
 
 	// Try $PATH first.
-	s := whichcmd.One(name) // $ which <name>
+	s := which.One(name) // $ which <name>
 	if s != "" {
 		return s, nil
 	}
@@ -69,7 +70,7 @@ func getPath(name string) (string, error) {
 	// Next, try $GOPATH/bin
 	paths := gopath()
 	for i := 0; s == "" && i < len(paths); i++ {
-		s = whichcmd.OneWithPath(name, paths[i]+filepath.Join("bin"))
+		s = which.OneWithPath(name, paths[i]+filepath.Join("bin"))
 	}
 	if s != "" {
 		return s, nil
@@ -80,7 +81,7 @@ func getPath(name string) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "Unable to determine current directory")
 	}
-	s = whichcmd.OneWithPath(name, wd)
+	s = which.OneWithPath(name, wd)
 	if s == "" {
 		return "", errors.New(name + " not found in any of " + os.Getenv("PATH") + ":" + strings.Join(paths, ":"))
 	}
@@ -128,6 +129,19 @@ func defaultGopath() string {
 	return ""
 }
 
+// strip path strips the GOPATH prefix from the raw source code path
+// as returned by getMainPath.
+func stripPath(path string) string {
+	if !filepath.IsAbs(path) {
+		return path
+	}
+	n := strings.Index(path, "/src/")
+	if n > -1 {
+		return path[n+5:]
+	}
+	return path
+}
+
 // findReadme attempts to find the file README.md either locally
 // or in the remote repository of the executable.
 func findReadme(src string) (readme []byte, isMarkdown bool, err error) {
@@ -137,7 +151,7 @@ func findReadme(src string) (readme []byte, isMarkdown bool, err error) {
 	}
 	readme, isMarkdown, err = findRemoteReadme(src)
 	if err != nil {
-		return []byte(""), false, errors.Wrap(err, "Did not find a readme locally nor in the remote repository")
+		return nil, false, errors.Wrap(err, "Did not find a readme locally nor in the remote repository")
 	}
 	return readme, isMarkdown, nil
 }
@@ -145,6 +159,7 @@ func findReadme(src string) (readme []byte, isMarkdown bool, err error) {
 // findLocalReadme is a helper function for findReadme. It searches the README file
 // locally in $GOPATH/src/<src>.
 func findLocalReadme(src string) (readme []byte, isMarkdown bool, err error) {
+	found := false
 	for _, gp := range gopath() {
 
 		// Create the path to the README file and open the file.
@@ -169,8 +184,12 @@ func findLocalReadme(src string) (readme []byte, isMarkdown bool, err error) {
 		if err != nil {
 			return readme[:n], false, errors.Wrap(err, "Error reading from file "+fp)
 		}
-		err = rf.Close()
+		_ = rf.Close()
+		found = true
 		break
+	}
+	if !found {
+		return nil, false, errors.Errorf("No README found for %s in any of %s\n", src, gopath())
 	}
 	return readme, true, err
 }
@@ -181,7 +200,23 @@ func findRemoteReadme(src string) ([]byte, bool, error) {
 	return []byte(""), false, errors.New("Not implemented")
 }
 
-func mdToAnsi(readme string) (string, error) {
-	// TODO:
-	return "", errors.New("Not implemented")
+func mdToAnsi(readme []byte) []byte {
+
+	// The code in this function was copied from github.com/ec1oud/mdcat
+	extensions := 0
+	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
+	extensions |= blackfriday.EXTENSION_TABLES
+	extensions |= blackfriday.EXTENSION_FENCED_CODE
+	extensions |= blackfriday.EXTENSION_AUTOLINK
+	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
+	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
+
+	ansiFlags := 0
+	ansiFlags |= blackfriday.ANSI_USE_SMARTYPANTS
+	ansiFlags |= blackfriday.ANSI_SMARTYPANTS_FRACTIONS
+	ansiFlags |= blackfriday.ANSI_SMARTYPANTS_LATEX_DASHES
+
+	renderer := blackfriday.AnsiRenderer(80, ansiFlags) // TODO get terminal width
+
+	return blackfriday.Markdown(readme, renderer, extensions)
 }
