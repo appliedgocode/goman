@@ -53,7 +53,7 @@ func main() {
 	// Determine the location of `exec`
 	path, err := getExecPath(exec)
 	if err != nil {
-		log.Println("Cannot determine the path of", exec)
+		log.Println(exec + ": command not found")
 		if *verbose {
 			log.Println(errors.WithStack(err))
 		}
@@ -63,7 +63,7 @@ func main() {
 	// Extract the source path from the binary
 	src, err := getMainPath(path)
 	if err != nil {
-		log.Println("Cannot determine source path of", path)
+		log.Println("No source path in", path, "-", exec, "is perhaps no Go binary")
 		if *verbose {
 			log.Println(errors.WithStack(err))
 		}
