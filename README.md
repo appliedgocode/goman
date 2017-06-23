@@ -9,6 +9,10 @@ Almost all Go binaries come without any man page, even when properly installed t
 For that last option, `goman` makes a couple of assumptions about the location, but at least with github and gitlab, those assumptions should be valid. 
 
 
+## Screencast
+
+![goman demo](goman.gif)
+
 
 ## Usage
 
@@ -24,12 +28,25 @@ For that last option, `goman` makes a couple of assumptions about the location, 
     go get -u github.com/christophberger/goman
 
 
+## Shell Integration
+
+`goman` can blend in with the standard `man` command. Bash example (to be placed in .bashrc):
+
+```
+man() { 
+    if ! /usr/bin/man $1; then 
+        goman $1 | less -R; 
+    fi; 
+}
+```
+
+
 ## License
 
 See `LICENSE*.txt`.
 
 
-## Bugs and limitations
+## Bugs And Limitations
 
 Not tested on Windows yet.
 
@@ -42,6 +59,8 @@ In its current state, `goman` is little more than a proof of concept. Bugs certa
 * If a binary originates from a command subdirectory of a project, chances are that this subdirectory contains no extra README file. `goman` then tries to retrieve the README file of the main project. However, `goman` can only identify a command subdir if it has the name `cmd`, or if it is beneath a directory of that name.
 
 * Some binaries contain an absolute path to their source code, and `goman` assumes that the GOPATH is the part that extends to the first directory named `/src/`. If the GOPATH exists in a path that contains a `/src/` directory, `goman` fails extracting the relative source code path.
+
+* `goman` attempts no word wrapping.
 
 
 ## See also
