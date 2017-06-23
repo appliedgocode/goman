@@ -14,6 +14,10 @@ For that last option, `goman` makes a couple of assumptions about the location, 
 
     goman <go binary file>
 
+    goman <go binary file> | less -r
+
+(`-r` tells `less` to render ANSI color codes.)
+
 
 ## Installation 
 
@@ -26,6 +30,8 @@ See `LICENSE*.txt`.
 
 
 ## Bugs and limitations
+
+Not tested on Windows yet.
 
 In its current state, `goman` is little more than a proof of concept. Bugs certainly do exist, as well as functional shortcomings due to oversimplified design, such as:
 
