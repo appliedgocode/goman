@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"go/build"
 	"io"
@@ -19,16 +20,24 @@ import (
 )
 
 var (
-	names = []string{"README.md", "README", "README.txt", "README.markdown"}
+	names      = []string{"README.md", "README", "README.txt", "README.markdown"}
+	remoteOnly *bool
 )
 
 func main() {
 
-	if len(os.Args) != 2 {
+	log.SetFlags(0)
+
+	verbose := flag.Bool("v", false, "Verbose error output")
+	remoteOnly = flag.Bool("r", false, "Skip local search (as the local file may be outdated)")
+	flag.Parse()
+
+	if len(flag.Args()) != 1 {
 		usage()
 		return
 	}
-	switch os.Args[1] {
+	switch flag.Args()[0] {
+	// easier than defining four flags and checking for the string "help" also:
 	case "-h", "-help", "--help", "-?", "help":
 		readme, _, err := findReadme("github.com/christophberger/goman")
 		if err != nil {
@@ -39,27 +48,36 @@ func main() {
 		return
 	}
 
-	exec := os.Args[1]
+	exec := flag.Args()[0]
 
 	// Determine the location of `exec`
 	path, err := getExecPath(exec)
 	if err != nil {
 		log.Println("Cannot determine the path of", exec)
-		log.Fatalln(errors.WithStack(err))
+		if *verbose {
+			log.Println(errors.WithStack(err))
+		}
+		return
 	}
 
 	// Extract the source path from the binary
 	src, err := getMainPath(path)
 	if err != nil {
 		log.Println("Cannot determine source path of", path)
-		log.Fatalln(errors.WithStack(err))
+		if *verbose {
+			log.Println(errors.WithStack(err))
+		}
+		return
 	}
 
 	// Find the README
 	readme, source, err := findReadme(src)
 	if err != nil {
 		log.Println("No README found for", exec, "at", src)
-		log.Fatalln(errors.WithStack(err))
+		if *verbose {
+			log.Println(errors.WithStack(err))
+		}
+		return
 	}
 
 	readme = mdToAnsi(readme)
@@ -136,9 +154,11 @@ func gopath() []string {
 // or in the remote repository of the executable.
 func findReadme(src string) (readme []byte, source string, err error) {
 
-	readme, source, err = findLocalReadme(src)
-	if err == nil {
-		return readme, source, nil
+	if !*remoteOnly {
+		readme, source, err = findLocalReadme(src)
+		if err == nil {
+			return readme, source, nil
+		}
 	}
 
 	readme, source, err = findRemoteReadme(src)
