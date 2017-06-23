@@ -40,8 +40,6 @@ func main() {
 		log.Fatalln(errors.WithStack(err))
 	}
 
-	src = stripPath(src)
-
 	// Find the README
 	readme, isMarkdown, err := findReadme(src)
 	if err != nil {
@@ -127,19 +125,6 @@ func defaultGopath() string {
 		return def
 	}
 	return ""
-}
-
-// strip path strips the GOPATH prefix from the raw source code path
-// as returned by getMainPath.
-func stripPath(path string) string {
-	if !filepath.IsAbs(path) {
-		return path
-	}
-	n := strings.Index(path, "/src/")
-	if n > -1 {
-		return path[n+5:]
-	}
-	return path
 }
 
 // findReadme attempts to find the file README.md either locally

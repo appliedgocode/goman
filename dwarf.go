@@ -12,6 +12,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func getTable(file string) (*gosym.Table, error) {
@@ -78,5 +79,22 @@ func getMainPath(file string) (string, error) {
 		return "", err
 	}
 	path, _, _ := table.PCToLine(table.LookupFunc("main.main").Entry)
-	return filepath.Dir(path), nil
+	return stripPath(filepath.Dir(path))
+}
+
+// strip path strips the GOPATH prefix from the raw source code path
+// as returned by getMainPath.
+// If the path is absolute, stripPath assumes a GOPATH prefix and
+// searches for the first occurrence of "/src/". It returns the part
+// after "/src/".
+// If the path is relative, stripPath does not touch the path at all.
+func stripPath(path string) (string, error) {
+	if !filepath.IsAbs(path) {
+		return path, nil
+	}
+	n := strings.Index(path, "/src/")
+	if n == -1 {
+		return "", errors.New("Path is absolute but contains no '/src/' dir: " + path)
+	}
+	return path[n+5:], nil
 }
