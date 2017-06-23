@@ -14,9 +14,9 @@ For that last option, `goman` makes a couple of assumptions about the location, 
 
     goman <go binary file>
 
-    goman <go binary file> | less -r
+    goman <go binary file> | less -R
 
-(`-r` tells `less` to render ANSI color codes.)
+(`-R` tells `less` to render ANSI color codes.)
 
 
 ## Installation 
