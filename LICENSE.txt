@@ -9,7 +9,7 @@ This license covers all content by Christoph Berger except source code, includin
 
 2. Code license
 
-Note: The code contained in this work may import code from other sources. Please review the respective licenses as well. 
+Note: The code contained in this work may import code from other sources. Please review the respective licenses as well.
 
 
 Copyright (c) 2017, Christoph Berger
