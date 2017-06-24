@@ -1,14 +1,3 @@
-This file contains two licenses. One applies to all non-code content (except code comments within the code itself), the other to source code.
-
-1. Non-code content license
-
-This work by Christoph Berger is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (http://creativecommons.org/licenses/by-nc-sa/4.0/)
-
-This license covers all content by Christoph Berger except source code, including text content as well as graphic content and animations.
-
-
-2. Code license
-
 Note: The code contained in this work may import code from other sources. Please review the respective licenses as well.
 
 
