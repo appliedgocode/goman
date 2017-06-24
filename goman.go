@@ -1,3 +1,17 @@
+// (C) 2017 Christoph Berger <mail@christophberger.com>. Some rights reserved.
+// Distributed under a 3-clause BSD license; see LICENSE.txt.
+
+// goman - the missing man pages for Go binaries
+//
+// goman replaces missing man pages for Go binaries by locating the README file of the corresponding source code project and rendering this file as plain text with ANSI colors, to be viewed in a terminal, optionally through less -R.
+//
+// Usage:
+//
+//     goman <go binary file>
+//
+// or
+//
+//     goman <go binary file> | less -R
 package main
 
 import (
