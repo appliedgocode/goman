@@ -9,7 +9,7 @@ Almost all Go binaries come without any man page, even when properly installed t
 For that last option, `goman` makes a couple of assumptions about the location, but at least with github and gitlab, those assumptions should be valid. 
 
 
-## Screencast
+## Demo
 
 ![goman demo](goman.gif)
 
