@@ -28,6 +28,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/crypto/ssh/terminal"
+
 	"github.com/bfontaine/which/which"
 	"github.com/ec1oud/blackfriday"
 	"github.com/pkg/errors"
@@ -340,7 +342,12 @@ func mdToAnsi(readme []byte) []byte {
 
 	ansiFlags := 0
 
-	renderer := blackfriday.AnsiRenderer(80, ansiFlags) // TODO get terminal width
+	// Get the current terminal width, or 80 if the width cannot be determined
+	w, _, err := terminal.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		w = 80
+	}
+	renderer := blackfriday.AnsiRenderer(w, ansiFlags)
 
 	return blackfriday.Markdown(readme, renderer, extensions)
 }
