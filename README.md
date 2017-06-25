@@ -45,6 +45,8 @@ man() {
 
 All code written by myself is governed by a 3-clause BSD license, see [LICENSE.txt](https://github.com/christophberger/goman/blob/master/LICENSE.txt).
 
+The `which` package is part of the [which command](https://github.com/bfontaine/which), which is licensed under the MIT license; see [LICENSE.which.txt](https://github.com/christophberger/goman/blob/master/LICENSE.which.txt).
+
 The code that extracts the source code path from a go binary is a part of the [`gorebuild` tool](https://github.com/FiloSottile/gorebuild) that is published under the MIT license; See [LICENSE.dwarf.go.txt](https://github.com/christophberger/goman/blob/master/LICENSE.dwarf.go.txt).
 
 The Markdown renderer is [a fork](https://github.com/ec1oud/blackfriday) of [blackfriday](https://github.com/russross/blackfriday) with extra code for rendering Markdown to plain text with ANSI color codes. See [LICENSE.blackfriday.txt](https://github.com/christophberger/goman/blob/master/LICENSE.blackfriday.txt) and the copyright notice in [ec1oud/blackfriday/ansi.go](https://github.com/christophberger/goman/blob/master/vendor/github.com/ec1oud/blackfriday/ansi.go).
