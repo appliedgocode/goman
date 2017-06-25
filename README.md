@@ -70,6 +70,8 @@ In its current state, `goman` is little more than a proof of concept. Bugs certa
 
 * `goman` attempts no word wrapping.
 
+* Canonical URL's are not handled right now.
+
 
 ## See also
 
