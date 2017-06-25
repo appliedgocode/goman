@@ -9,10 +9,11 @@ import (
 	"debug/elf"
 	"debug/gosym"
 	"debug/macho"
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 func getTable(file string) (*gosym.Table, error) {
@@ -76,7 +77,7 @@ func getTable(file string) (*gosym.Table, error) {
 func getMainPath(file string) (string, error) {
 	table, err := getTable(file)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "Main path not found")
 	}
 	path, _, _ := table.PCToLine(table.LookupFunc("main.main").Entry)
 	return stripPath(filepath.Dir(path))
