@@ -75,6 +75,8 @@ In its current state, `goman` is little more than a proof of concept. Bugs certa
 
 [mango](https://github.com/slyrz/mango) - generate man pages from your source code
 
+[gorebuild](https://github.com/FiloSottile/gorebuild) - rebuild Go binaries from source
+
 [binstale](https://github.com/shurcooL/binstale) - check if your go binaries are outdated
 
 [bin](https://github.com/rjeczalik/bin) and gobin - update all your Go binaries
