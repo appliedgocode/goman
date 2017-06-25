@@ -1,5 +1,7 @@
 # goman - the missing man page for Go binaries
 
+![goman logo](goman.png)
+
 Almost all Go binaries come without any man page, even when properly installed through means like Homebrew.
 
 `goman` substitutes the missing man page by the README file from the Go binary's sources.
