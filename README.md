@@ -86,3 +86,9 @@ In its current state, `goman` is little more than a proof of concept. Bugs certa
 [binstale](https://github.com/shurcooL/binstale) - check if your go binaries are outdated
 
 [bin](https://github.com/rjeczalik/bin) and gobin - update all your Go binaries
+
+## Changelog
+
+###v0.1.2 (2017-06-27)
+ 
+Fix slice panic if URL path is shorter than "github.com"
