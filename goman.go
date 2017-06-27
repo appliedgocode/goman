@@ -318,11 +318,11 @@ func getRawReadmeURL(src string) (string, error) {
 
 	src = filepath.ToSlash(src)
 
-	if src[:len(gh)] == gh {
+	if len(src) >= len(prefix)+len(gh) && src[:len(gh)] == gh {
 		return prefix + ghraw + src[len(gh):] + "/master/", nil
 	}
 
-	if src[:len(gl)] == gl {
+	if len(src) >= len(prefix)+len(gl) && src[:len(gl)] == gl {
 		return prefix + src + "/raw/master/", nil
 	}
 
