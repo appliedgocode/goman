@@ -57,22 +57,21 @@ The code that extracts the source code path from a go binary is a part of the [`
 The Markdown renderer is [a fork](https://github.com/ec1oud/blackfriday) of [blackfriday](https://github.com/russross/blackfriday) with extra code for rendering Markdown to plain text with ANSI color codes. See [LICENSE.blackfriday.txt](https://github.com/christophberger/goman/blob/master/LICENSE.blackfriday.txt) and the copyright notice in [ec1oud/blackfriday/ansi.go](https://github.com/christophberger/goman/blob/master/vendor/github.com/ec1oud/blackfriday/ansi.go).
 
 
-## Bugs And Limitations
-
-Not tested on Windows yet.
+## Limitations
 
 In its current state, `goman` is little more than a proof of concept. Bugs certainly do exist, as well as functional shortcomings due to oversimplified design, such as:
 
 * `goman` assumes that the README file contains either Markdown text or plain text. I know of at least one README.md that contains HTML. `goman` does not treat such cases in any special way.
 
-* If a binary originates from a command subdirectory of a project, chances are that this subdirectory contains no extra README file. `goman` then tries to find the README file 
+* If a binary originates from a command subdirectory of a project, chances are that this subdirectory contains no extra README file. `goman` then tries to find the README file in the parent directories.
 
-* Some binaries contain an absolute path to their source code, and `goman` assumes that the GOPATH is the part that extends to the first directory named `/src/`. If the GOPATH exists in a path that contains a `/src/` directory, `goman` fails extracting the relative source code path.
+* Some binaries contain an absolute path to their source code, and `goman` assumes that the GOPATH used at compile time is the part from the root to the first directory named `/src/`. If the GOPATH itself contains a `/src/` directory (e.g., "export GOPATH=/home/user/src/go"), `goman` fails extracting the relative source code path.
 
 * `goman`'s output may wrap character-wise instead of word-wise.
 
-* Vanity import paths (like, e.g. "gopkg.in/yaml.v1") are not handled right now.
+* Path redirection to canonical paths (like, e.g. from "https://npf.io/gorram" to https://github.com/natefinch/gorram) are not handled right now.
 
+* Not tested on Windows yet.
 
 ## See also
 
