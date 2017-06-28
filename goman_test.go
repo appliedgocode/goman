@@ -1,5 +1,14 @@
 package main
 
+/*
+
+Note for readers: This test file covers only a small part of all code.
+I could have added more tests by abstracting file parameters into io.Readers,
+but this seemed not worth the effort as the tool itself is very easy
+to test as a whole.
+
+*/
+
 import (
 	"testing"
 )
