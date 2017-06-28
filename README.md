@@ -32,7 +32,7 @@ For that last option, `goman` makes a couple of assumptions about the location, 
 
 ## Shell Integration
 
-`goman` can blend in with the standard `man` command. Bash example (to be placed in .bashrc):
+`goman` can blend in with the standard `man` command. Bash example (to be placed in `~/.bashrc`):
 
 ```
 man() { 
@@ -41,6 +41,9 @@ man() {
     fi; 
 }
 ```
+
+**On macOS,** ensure to source `~/.bashrc` at the end of `~/.bash_profile`, as the Terminal app starts all shells as login shells that do not read `.bashrc`. (Background information on this is available [here](http://scriptingosx.com/2017/04/about-bash_profile-and-bashrc-on-macos/) or [here](https://unix.stackexchange.com/questions/119627/why-are-interactive-shells-on-osx-login-shells-by-default) or via search engines.)  
+(Adding this script directly to `~/.bash_profile` is perhaps not a good idea as some interactive shells may start as non-login shells and therefore do not source `~/.bash_profile`.)
 
 
 ## Credits and Licenses
