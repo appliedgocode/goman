@@ -3,12 +3,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/bfontaine/which"
-  packages = ["which"]
-  revision = "eb85e63e18a74984175ed2425b148f06a0428431"
-
-[[projects]]
-  branch = "master"
   name = "github.com/ec1oud/blackfriday"
   packages = ["."]
   revision = "4575f80c915378520ef9395f96278fe8ee36f84b"
@@ -40,6 +34,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f30a1f3f5451c7cb0814fe2d11ff063b86f33fce4e710b1aab85ca1484aec7af"
+  inputs-digest = "39623363e314473000b5dbffc4ece1f48b86f41cc635cbee38f8361471df0c99"
   solver-name = "gps-cdcl"
   solver-version = 1
