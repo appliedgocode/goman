@@ -242,6 +242,11 @@ allLoops:
 func findRemoteReadme(src string) (readme []byte, url string, err error) {
 
 	var e error
+	// TODO: implement resolveVanityImport
+	// src, err = resolveVanityImports(src)
+	// if err != nil {
+	// 	return nil, "", errors.Wrap(err, "error resolving vanity import for "+src)
+	// }
 	for _, source := range sources(src) {
 		url = getReadmeURL(source)
 		for _, name := range names {
@@ -303,6 +308,24 @@ func sources(src string) []string {
 	}
 	return paths
 }
+
+// Resolve any redirects to get the correct URL to the remote repository.
+// func resolveVanityImports(src string) (string, error) {
+// 	var client = &http.Client{
+// 		Timeout: time.Second * 10,
+// 	}
+
+// 	response, err := client.Get("https://" + src + "?go-get=1")
+// 	if err != nil {
+// 		return "", errors.Wrap(err, "failed retrieving header data of URL "+src)
+// 	}
+
+// 	// TODO:
+// 	// extract meta tag "go-import" from response body
+// 	// <meta name="go-import" content="import-prefix vcs repo-root">
+// 	// get the `repo-root` part
+// 	// strip the https:// prefix
+// }
 
 // getReadmeURL receives the relative path to the project and returns
 // the URL to the raw README.md file (WITHOUT the file name itself, but
