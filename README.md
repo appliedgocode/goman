@@ -94,6 +94,6 @@ In its current state, `goman` is little more than a proof of concept. Bugs certa
 
 Fix slice panic if URL path is shorter than "github.com" (issue #1)
 
-### v0.2.0 (2017-06-28)
+### v0.1.3 (2017-06-28)
 
 Change search strategy for README file to cover all possible cases. (Fixes issue #2)
