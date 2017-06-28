@@ -23,6 +23,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -30,7 +31,6 @@ import (
 
 	"golang.org/x/crypto/ssh/terminal"
 
-	"github.com/bfontaine/which/which"
 	"github.com/ec1oud/blackfriday"
 	"github.com/pkg/errors"
 )
@@ -109,6 +109,7 @@ goman <name of Go binary>
 
 goman is man for Go binaries. It attempts to fetch the README file of a Go binary's project and displays it in the terminal, if found.
 `)
+	flag.Usage()
 }
 
 // getExecPath receives the name of an executable and determines its path
@@ -116,17 +117,17 @@ goman is man for Go binaries. It attempts to fetch the README file of a Go binar
 func getExecPath(name string) (string, error) {
 
 	// Try $PATH first.
-	s := which.One(name) // $ which <name>
-	if s != "" {
+	s, err := exec.LookPath(name)
+	if err == nil {
 		return s, nil
 	}
 
 	// Next, try $GOPATH/bin
 	paths := gopath()
 	for i := 0; s == "" && i < len(paths); i++ {
-		s = which.OneWithPath(name, paths[i]+filepath.Join("bin"))
+		s, err = exec.LookPath(filepath.Join(paths[i], name))
 	}
-	if s != "" {
+	if err == nil {
 		return s, nil
 	}
 
@@ -135,8 +136,8 @@ func getExecPath(name string) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "Unable to determine current directory")
 	}
-	s = which.OneWithPath(name, wd)
-	if s == "" {
+	s, err = exec.LookPath(filepath.Join(wd, name))
+	if err != nil {
 		return "", errors.New(name + " not found in any of " + os.Getenv("PATH") + ":" + strings.Join(paths, ":"))
 	}
 
