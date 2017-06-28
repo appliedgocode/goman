@@ -65,15 +65,13 @@ In its current state, `goman` is little more than a proof of concept. Bugs certa
 
 * `goman` assumes that the README file contains either Markdown text or plain text. I know of at least one README.md that contains HTML. `goman` does not treat such cases in any special way.
 
-* `goman` assumes that a command subproject is always in `<projectdir>/cmd/`. If the cmd dir has a different name, `goman` 
-
-* If a binary originates from a command subdirectory of a project, chances are that this subdirectory contains no extra README file. `goman` then tries to retrieve the README file of the main project. However, `goman` can only identify a command subdir if it has the name `cmd`, or if it is beneath a directory of that name.
+* If a binary originates from a command subdirectory of a project, chances are that this subdirectory contains no extra README file. `goman` then tries to find the README file 
 
 * Some binaries contain an absolute path to their source code, and `goman` assumes that the GOPATH is the part that extends to the first directory named `/src/`. If the GOPATH exists in a path that contains a `/src/` directory, `goman` fails extracting the relative source code path.
 
-* `goman` attempts no word wrapping.
+* `goman`'s output may wrap character-wise instead of word-wise.
 
-* Canonical URL's are not handled right now.
+* Vanity import paths (like, e.g. "gopkg.in/yaml.v1") are not handled right now.
 
 
 ## See also
@@ -94,4 +92,8 @@ In its current state, `goman` is little more than a proof of concept. Bugs certa
 
 ### v0.1.2 (2017-06-27)
 
-Fix slice panic if URL path is shorter than "github.com"
+Fix slice panic if URL path is shorter than "github.com" (issue #1)
+
+### v0.2.0 (2017-06-28)
+
+Change search strategy for README file to cover all possible cases. (Fixes issue #2)

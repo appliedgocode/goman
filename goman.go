@@ -192,21 +192,12 @@ func findLocalReadme(src string) (readme []byte, fp string, err error) {
 	found := false
 	var e error
 
-	// If the source path contains no /cmd/, sources contains only src.
-	// Otherwise it contains the unchanged src and src with /cmd/... stripped.
-	// The point is, most subcommands have no own README file, and therefore
-	// we must also search in the main project.
-	sources := []string{src}
-	if containsCmdPath(src) {
-		sources = append(sources, removeCmdPath(src))
-	}
-
 allLoops:
 	// We have to search across all gopath elements, across all README file names,
-	// and for sources containing /cmd/ also the main project.
+	// and also up the directory tree (in case the command is a subproject)
 	for _, gp := range gopath() {
 		for _, name := range names {
-			for _, source := range sources {
+			for _, source := range sources(src) {
 
 				// Create the path to the README file and open the file.
 				// If this fails, try the next GOPATH entry.
@@ -251,20 +242,14 @@ allLoops:
 func findRemoteReadme(src string) (readme []byte, url string, err error) {
 
 	var e error
-	sources := []string{src}
-
-	if containsCmdPath(src) {
-		sources = append(sources, removeCmdPath(src))
-	}
-
-	for _, source := range sources {
-		url, err = getRawReadmeURL(source)
+	for _, source := range sources(src) {
+		url = getReadmeURL(source)
 		for _, name := range names {
-			readme, err = httpGetReadme(url + name)
-			if err == nil {
+			readme, e = httpGetReadme(url + name)
+			if e == nil {
 				return readme, url, nil
 			}
-			e = errors.Wrap(err, "")
+			err = errors.Wrap(e, "") // collect all errors from the loop
 		}
 	}
 
@@ -295,38 +280,62 @@ func httpGetReadme(url string) ([]byte, error) {
 	return readme, nil
 }
 
-func containsCmdPath(s string) bool {
-	return strings.Contains(s, "/cmd/")
-}
-func removeCmdPath(s string) string {
-	return s[:strings.Index(s, "/cmd/")]
+// sourcePathIterator returns a function that yields the full `src` string on the
+// first call, and the `src` string stripped of the last directory on every
+// subsequent call, until reaching the root directory of the project.
+// Then any subsequent call yields an empty string.
+//
+// Example:
+//
+// src = github.com/user/project/subdir/subdir
+// 1st invocation yields src
+// 2nd invocation yields github.com/user/project/subdir
+// 3rd invocation yields github.com/user/project
+// 4th invocation yields ""
+func sources(src string) []string {
+	strings.Trim(src, "/")
+	dirs := strings.Split(src, "/")
+	paths := make([]string, 0, len(dirs))
+
+	for len(dirs) > 0 {
+		paths = append(paths, strings.Join(dirs, "/"))
+		dirs = dirs[:len(dirs)-1]
+	}
+	return paths
 }
 
-// getRawReadmeURL receives the relative path to the project and returns
+// getReadmeURL receives the relative path to the project and returns
 // the URL to the raw README.md file (WITHOUT the file name itself, but
 // WITH a trailing slash).
 // Currently it knows how to do this for github.com and gitlab.com only.
-func getRawReadmeURL(src string) (string, error) {
+// For all other sites, it returns `https://<src>/`.
+//
+// Examples:
+//
+// From github.com/ec1oud/mdcat to:
+// https://raw.githubusercontent.com/ec1oud/mdcat/master/
+//
+// From gitlab.com/SporeDB/sporedb to:
+// https://gitlab.com/SporeDB/sporedb/raw/master/
+
+func getReadmeURL(src string) string {
 
 	prefix := "https://"
 	gh := "github.com/"
 	gl := "gitlab.com/"
 	ghraw := "raw.githubusercontent.com/"
 
-	// https://raw.githubusercontent.com/ec1oud/mdcat/master/README.md
-	// https://gitlab.com/SporeDB/sporedb/raw/master/README.md
-
-	src = filepath.ToSlash(src)
+	src = strings.Trim(filepath.ToSlash(src), "/")
 
 	if len(src) >= len(prefix)+len(gh) && src[:len(gh)] == gh {
-		return prefix + ghraw + src[len(gh):] + "/master/", nil
+		return prefix + ghraw + src[len(gh):] + "/master/"
 	}
 
 	if len(src) >= len(prefix)+len(gl) && src[:len(gl)] == gl {
-		return prefix + src + "/raw/master/", nil
+		return prefix + src + "/raw/master/"
 	}
 
-	return "", errors.New("No supported host found in source path: " + src)
+	return prefix + src + "/"
 }
 
 func mdToAnsi(readme []byte) []byte {

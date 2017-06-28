@@ -1,19 +1,11 @@
 package main
 
-/*
-
-Note for readers: This test file covers only a small part of all code.
-I could have added more tests by abstracting file parameters into io.Readers,
-but this seemed not worth the effort as the tool itself is very easy
-to test as a whole.
-
-*/
-
 import (
+	"reflect"
 	"testing"
 )
 
-func Test_getRawReadmeURL(t *testing.T) {
+func Test_getReadmeURL(t *testing.T) {
 	tests := []struct {
 		name    string
 		src     string
@@ -23,14 +15,11 @@ func Test_getRawReadmeURL(t *testing.T) {
 		{"github", "github.com/user/repo", "https://raw.githubusercontent.com/user/repo/master/", false},
 		{"githubcmd1", "github.com/user/repo/cmd/cmdname", "https://raw.githubusercontent.com/user/repo/cmd/cmdname/master/", false},
 		{"gitlab", "gitlab.com/user/repo", "https://gitlab.com/user/repo/raw/master/", false},
+		{"vanity", "npf.io/gorram", "https://npf.io/gorram/", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := getRawReadmeURL(tt.src)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("getRawReadmeURL() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			got := getReadmeURL(tt.src)
 			if got != tt.want {
 				t.Errorf("getRawReadmeURL() = %v, want %v", got, tt.want)
 			}
@@ -70,6 +59,28 @@ func Test_findLocalReadme(t *testing.T) {
 			// if gotFp != tt.wantFp {
 			// 	t.Errorf("findLocalReadme() gotFp = %v, want %v", gotFp, tt.wantFp)
 			// }
+		})
+	}
+}
+
+func Test_sources(t *testing.T) {
+	type args struct {
+		src string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{"base", args{"github.com/user/repo"}, []string{"github.com/user/repo", "github.com/user", "github.com"}},
+		{"cmd", args{"github.com/user/repo/cmd/name"}, []string{"github.com/user/repo/cmd/name", "github.com/user/repo/cmd", "github.com/user/repo", "github.com/user", "github.com"}},
+		{"caddy", args{"github.com/mholt/caddy/caddy"}, []string{"github.com/mholt/caddy/caddy", "github.com/mholt/caddy", "github.com/mholt", "github.com"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := sources(tt.args.src); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("sources() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }
