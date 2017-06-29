@@ -286,18 +286,18 @@ func httpGetReadme(url string) ([]byte, error) {
 	return readme, nil
 }
 
-// sourcePathIterator returns a function that yields the full `src` string on the
-// first call, and the `src` string stripped of the last directory on every
-// subsequent call, until reaching the root directory of the project.
-// Then any subsequent call yields an empty string.
+// source returns a slice containing `src` and all paths
+// when walking the directory tree up to the root path.
 //
 // Example:
 //
 // src = github.com/user/project/subdir/subdir
-// 1st invocation yields src
-// 2nd invocation yields github.com/user/project/subdir
-// 3rd invocation yields github.com/user/project
-// 4th invocation yields ""
+// Then the slice contains:
+// github.com/user/project/subdir/subdir
+// github.com/user/project/subdir
+// github.com/user/project
+// github.com/user
+// github.com
 func sources(src string) []string {
 	strings.Trim(src, "/")
 	dirs := strings.Split(src, "/")
