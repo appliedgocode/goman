@@ -1,7 +1,9 @@
 package main
 
 import (
+	"os/exec"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -80,6 +82,30 @@ func Test_sources(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := sources(tt.args.src); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("sources() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_gopath(t *testing.T) {
+
+	// Checking against an alternate method of getting the GOPATH
+	cmd := exec.Command("go", "env", "GOPATH")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Skipf("gopath() - cannot read GOPATH via `go env GOPATH`: %s", err)
+	}
+
+	tests := []struct {
+		name string
+		want []string
+	}{
+		{"gopath", strings.Split(strings.Trim(string(out), " \r\n"), ";")},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := gopath(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("gopath() = %v, want %v", got, tt.want)
 			}
 		})
 	}
