@@ -19,7 +19,7 @@ import (
 func getTable(file string) (*gosym.Table, error) {
 	f, err := os.Open(file)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error opening file "+file)
 	}
 
 	var textStart uint64
@@ -34,12 +34,12 @@ func getTable(file string) (*gosym.Table, error) {
 		}
 		if sect := obj.Section(".gosymtab"); sect != nil {
 			if symtab, err = sect.Data(); err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "error reading .gosymtab")
 			}
 		}
 		if sect := obj.Section(".gopclntab"); sect != nil {
 			if pclntab, err = sect.Data(); err != nil {
-				return nil, err
+				return nil, errors.Wrap("error reading .gopclntab")
 			}
 		} else {
 			return nil, errors.New("empty .gopclntab")
@@ -48,7 +48,7 @@ func getTable(file string) (*gosym.Table, error) {
 	} else {
 		obj, err := macho.NewFile(f)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "file neither has elf nor macho format")
 		}
 
 		if sect := obj.Section("__text"); sect == nil {
@@ -58,12 +58,12 @@ func getTable(file string) (*gosym.Table, error) {
 		}
 		if sect := obj.Section("__gosymtab"); sect != nil {
 			if symtab, err = sect.Data(); err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "error reading __gosymtab")
 			}
 		}
 		if sect := obj.Section("__gopclntab"); sect != nil {
 			if pclntab, err = sect.Data(); err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "error reading __gopclntab")
 			}
 		} else {
 			return nil, errors.New("empty __gopclntab")
@@ -71,13 +71,17 @@ func getTable(file string) (*gosym.Table, error) {
 	}
 
 	pcln := gosym.NewLineTable(pclntab, textStart)
-	return gosym.NewTable(symtab, pcln)
+	t, err := gosym.NewTable(symtab, pcln)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot create symbol table")
+	}
+	return t, nil
 }
 
 func getMainPath(file string) (string, error) {
 	table, err := getTable(file)
 	if err != nil {
-		return "", errors.Wrap(err, "Main path not found")
+		return "", errors.Wrap(err, "main path not found")
 	}
 	path, _, _ := table.PCToLine(table.LookupFunc("main.main").Entry)
 	return stripPath(filepath.Dir(path))
@@ -95,7 +99,7 @@ func stripPath(path string) (string, error) {
 	}
 	n := strings.Index(path, "/src/")
 	if n == -1 {
-		return "", errors.New("Path is absolute but contains no '/src/' dir: " + path)
+		return "", errors.New("path is absolute but contains no '/src/' dir: " + path)
 	}
 	return path[n+5:], nil
 }
