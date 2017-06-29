@@ -39,7 +39,7 @@ func getTable(file string) (*gosym.Table, error) {
 		}
 		if sect := obj.Section(".gopclntab"); sect != nil {
 			if pclntab, err = sect.Data(); err != nil {
-				return nil, errors.Wrap("error reading .gopclntab")
+				return nil, errors.Wrap(err, "error reading .gopclntab")
 			}
 		} else {
 			return nil, errors.New("empty .gopclntab")
@@ -48,7 +48,7 @@ func getTable(file string) (*gosym.Table, error) {
 	} else {
 		obj, err := macho.NewFile(f)
 		if err != nil {
-			return nil, errors.Wrap(err, "file neither has elf nor macho format")
+			return nil, errors.Wrap(err, "file has neither elf nor macho format")
 		}
 
 		if sect := obj.Section("__text"); sect == nil {
