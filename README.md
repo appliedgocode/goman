@@ -61,8 +61,6 @@ The Markdown renderer is [a fork](https://github.com/ec1oud/blackfriday) of [bla
 
 In its current state, `goman` is little more than a proof of concept. Bugs certainly do exist, as well as functional shortcomings due to oversimplified design, such as:
 
-* `goman` most probably does not work on Windows. Currently, `goman` can deal with "ELF" and "Mach-O" file formats only, whereas Windows uses a different binary file format.
-
 * `goman` assumes that the README file contains either Markdown text or plain text. I know of at least one README.md that contains HTML. `goman` does not treat such cases in any special way.
 
 * If a binary originates from a command subdirectory of a project, chances are that this subdirectory contains no extra README file. `goman` then tries to find the README file in the parent directories.
@@ -97,3 +95,7 @@ Fix slice panic if URL path is shorter than "github.com" (issue #1)
 ### v0.1.3 (2017-06-28)
 
 Change search strategy for README file to cover all possible cases. (Fixes issue #2)
+
+### v0.1.4 (2017-07-03)
+
+Add support for the PE file format (Windows).
