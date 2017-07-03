@@ -96,6 +96,6 @@ Fix slice panic if URL path is shorter than "github.com" (issue #1)
 
 Change search strategy for README file to cover all possible cases. (Fixes issue #2)
 
-### v0.1.4 (2017-07-03)
+### v0.2.0 (2017-07-03)
 
-Add support for the PE file format (Windows).
+Add support for the PE file format (Windows). (Implements issue #3)
