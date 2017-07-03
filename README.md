@@ -61,6 +61,8 @@ The Markdown renderer is [a fork](https://github.com/ec1oud/blackfriday) of [bla
 
 In its current state, `goman` is little more than a proof of concept. Bugs certainly do exist, as well as functional shortcomings due to oversimplified design, such as:
 
+* `goman` most probably does not work on Windows. Currently, `goman` can deal with "ELF" and "Mach-O" file formats only, whereas Windows uses a different binary file format.
+
 * `goman` assumes that the README file contains either Markdown text or plain text. I know of at least one README.md that contains HTML. `goman` does not treat such cases in any special way.
 
 * If a binary originates from a command subdirectory of a project, chances are that this subdirectory contains no extra README file. `goman` then tries to find the README file in the parent directories.
@@ -71,7 +73,6 @@ In its current state, `goman` is little more than a proof of concept. Bugs certa
 
 * Path redirection to canonical paths (like, e.g. from "https://npf.io/gorram" to https://github.com/natefinch/gorram) are not handled right now.
 
-* Not tested on Windows yet.
 
 ## See also
 
