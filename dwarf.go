@@ -182,6 +182,7 @@ func getMainPath(file string) (string, error) {
 // after "/src/".
 // If the path is relative, stripPath does not touch the path at all.
 func stripPath(path string) (string, error) {
+	path = filepath.ToSlash(path)
 	if !filepath.IsAbs(path) {
 		return path, nil
 	}
