@@ -86,16 +86,21 @@ In its current state, `goman` is little more than a proof of concept. Bugs certa
 
 [bin](https://github.com/rjeczalik/bin) and gobin - update all your Go binaries
 
+
 ## Changelog
 
-### v0.1.2 (2017-06-27)
+### v0.2.1 (2017-07-04)
 
-Fix slice panic if URL path is shorter than "github.com" (issue #1)
+Fix stripping prefix from absolute path on Windows (PR #5)
+
+### v0.2.0 (2017-07-03)
+
+Add support for the PE file format (Windows). (Implements issue #3)
 
 ### v0.1.3 (2017-06-28)
 
 Change search strategy for README file to cover all possible cases. (Fixes issue #2)
 
-### v0.2.0 (2017-07-03)
+### v0.1.2 (2017-06-27)
 
-Add support for the PE file format (Windows). (Implements issue #3)
+Fix slice panic if URL path is shorter than "github.com" (issue #1)
