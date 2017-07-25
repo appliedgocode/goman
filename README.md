@@ -8,8 +8,14 @@ Almost all Go binaries come without any man page, even when properly installed t
 
 `goman` first grabs the source path from the binary. Then it tries to locate the README file locally via the GOPATH. If this fails, it tries to fetch the README file from the binary's public repository. 
 
-For that last option, `goman` makes a couple of assumptions about the location, but at least with github and gitlab, those assumptions should be valid. 
+For that last option, `goman` makes a couple of assumptions about the location, but at least with github and gitlab, those assumptions should be valid.
 
+- - -
+
+**Featured on [episode #51](https://changelog.com/gotime/51) of the Go Time podcast! 
+(In the "Free Software Friday" section, at 1:02:35)**
+
+- - -
 
 ## Demo
 
