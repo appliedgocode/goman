@@ -103,11 +103,12 @@ func main() {
 }
 
 func usage() {
-	fmt.Println(`Usage:
+	fmt.Print(`Usage:
 
 goman <name of Go binary>
 
 goman is man for Go binaries. It attempts to fetch the README file of a Go binary's project and displays it in the terminal, if found.
+
 `)
 	flag.Usage()
 }
@@ -187,7 +188,9 @@ func findReadme(src string) (readme []byte, source string, err error) {
 }
 
 // findLocalReadme is a helper function for findReadme. It searches the README file
-// locally in $GOPATH/src/<src>.
+// locally in $GOPATH/src/<src> or $GOPATH/pkg/mod/<src>.
+// If the path is absolute, this means it neither contains /src/ nor /pkg/mod/.
+// In this case, findLocalReadme uses the full path.
 func findLocalReadme(src string) (readme []byte, fp string, err error) {
 
 	found := false
@@ -240,6 +243,17 @@ allLoops:
 // - http(s)://host.com/<user>/<project>/blob/master/<readme name>
 // - http(s)://host.com/<user>/<project>/blob/master/cmd/<cmdname>/<readme name>
 
+// Go get may cache repositories locally under $GOPATH/pkg/mod/, appending a
+// version string to the repository path. Before reaching out to the remote repository,
+// this version string must be stripped from the path.
+func stripModVersion(path string) string {
+	i := strings.Index(path, "@")
+	if i > 0 {
+		return path[:i]
+	}
+	return path
+}
+
 func findRemoteReadme(src string) (readme []byte, url string, err error) {
 
 	var e error
@@ -248,6 +262,8 @@ func findRemoteReadme(src string) (readme []byte, url string, err error) {
 	// if err != nil {
 	// 	return nil, "", errors.Wrap(err, "error resolving vanity import for "+src)
 	// }
+
+	src = stripModVersion(src)
 	for _, source := range sources(src) {
 		url = getReadmeURL(source)
 		for _, name := range names {

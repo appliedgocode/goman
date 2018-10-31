@@ -110,3 +110,24 @@ func Test_gopath(t *testing.T) {
 		})
 	}
 }
+
+func Test_stripModVersion(t *testing.T) {
+	type args struct {
+		path string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{"withVersion", args{"path/with/version@v1.0.0"}, "path/with/version"},
+		{"withoutVersion", args{"path/without/version"}, "path/without/version"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := stripModVersion(tt.args.path); got != tt.want {
+				t.Errorf("stripModVersion() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
