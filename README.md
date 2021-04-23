@@ -33,8 +33,17 @@ For that last option, `goman` makes a couple of assumptions about the location, 
 
 ## Installation 
 
-    go get -u github.com/christophberger/goman
+### Binaries
 
+On the release pages, open the latest release and download the binary that matches your OS and architecture.
+
+### From the source
+
+You need a Go toolchain installed.
+
+    go get -u github.com/appliedgocode/goman
+
+This downloads and installs `goman` to `$(go env GOPATH)/bin` (or `$(go env GOBIN)` if set). 
 
 ## Shell Integration
 
