@@ -55,7 +55,7 @@ func main() {
 	switch flag.Args()[0] {
 	// easier than defining four flags and checking for the string "help" also:
 	case "-h", "-help", "--help", "-?", "help":
-		readme, _, err := findReadme("github.com/christophberger/goman")
+		readme, _, err := findReadme("github.com/appliedgocode/goman")
 		if err != nil {
 			usage()
 			return
