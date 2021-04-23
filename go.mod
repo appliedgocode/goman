@@ -1,4 +1,4 @@
-module goman
+module github.com/appliedgocode/goman
 
 go 1.15
 
