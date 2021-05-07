@@ -48,3 +48,14 @@ signs:
         "--detach-sign",
         "${artifact}",
       ]
+brews:
+  - tap:
+      owner: appliedgocode
+      name: tap
+    commit_author:
+      name: christophberger
+      email: github@christophberger.com
+    homepage: "https://github.com/appliedgocode/goman"
+    description: "The missing man pages for Go binaries"
+    license: "BSD-3-Clause"
+    skip_upload: auto
