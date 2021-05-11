@@ -1,5 +1,7 @@
 # goman - the missing man page for Go binaries
 
+> Note: Find the latest version here: [appliedgocode/goman](https://github.com/appliedgocode/goman). 
+
 ![goman logo](goman.png)
 
 Almost all Go binaries come without any man page, even when properly installed through means like Homebrew.
