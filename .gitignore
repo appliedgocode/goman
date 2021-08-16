@@ -3,3 +3,4 @@ debug
 *.cmproj
 goman.afdesign
 goman
+dist/*
