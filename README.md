@@ -37,21 +37,31 @@ For that last option, `goman` makes a couple of assumptions about the location, 
 
 ### Binaries
 
+#### Homebrew
+
+```sh
+brew tap appliedgo/tools
+brew install goman
+```
+
+#### Manual download
 On the release pages, open the latest release and download the binary that matches your OS and architecture.
 
 ### From the source
 
 You need a Go toolchain installed.
 
-    go get -u github.com/appliedgocode/goman
+    go get github.com/appliedgocode/goman@latest
 
 This downloads and installs `goman` to `$(go env GOPATH)/bin` (or `$(go env GOBIN)` if set). 
 
 ## Shell Integration
 
-`goman` can blend in with the standard `man` command. Bash example (to be placed in `~/.bashrc`):
+`goman` can blend in with the standard `man` command. 
 
-```
+Bash example (to be placed in `~/.bashrc`):
+
+```bash
 man() { 
     if ! /usr/bin/man $1; then 
         goman $1 | less -R; 
@@ -59,13 +69,18 @@ man() {
 }
 ```
 
-**On macOS,** ensure to source `~/.bashrc` at the end of `~/.bash_profile`, as the Terminal app starts all shells as login shells that do not read `.bashrc`. (Background information on this is available [here](http://scriptingosx.com/2017/04/about-bash_profile-and-bashrc-on-macos/) or [here](https://unix.stackexchange.com/questions/119627/why-are-interactive-shells-on-osx-login-shells-by-default) or via search engines.)  
-(Adding this script directly to `~/.bash_profile` is perhaps not a good idea as some interactive shells may start as non-login shells and therefore do not source `~/.bash_profile`.)
+Fish example:
+
+```fish
+function man
+    /usr/bin/man $argv; or goman $argv[1] | less -R
+end
+```
 
 
 ## Credits and Licenses
 
-All code written by myself is governed by a 3-clause BSD license, see [LICENSE.txt](https://github.com/christophberger/goman/blob/master/LICENSE.txt).
+All code that is written by myself is governed by a 3-clause BSD license, see [LICENSE.txt](https://github.com/christophberger/goman/blob/master/LICENSE.txt).
 
 The `which` package is part of the [which command](https://github.com/bfontaine/which) that is licensed under the MIT license; see [LICENSE.which.txt](https://github.com/christophberger/goman/blob/master/LICENSE.which.txt).
 
