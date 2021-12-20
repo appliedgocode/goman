@@ -1,22 +1,10 @@
 // (C) 2017 Christoph Berger <mail@christophberger.com>. Some rights reserved.
 // Distributed under a 3-clause BSD license; see LICENSE.txt.
 
-// goman - the missing man pages for Go binaries
-//
-// goman replaces missing man pages for Go binaries by locating the README file of the corresponding source code project and rendering this file as plain text with ANSI colors, to be viewed in a terminal, optionally through less -R.
-//
-// Usage:
-//
-//     goman <go binary file>
-//
-// or
-//
-//     goman <go binary file> | less -R
 package main
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"go/build"
 	"io"
@@ -29,42 +17,14 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/crypto/ssh/terminal"
-
 	"github.com/ec1oud/blackfriday"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
-var (
-	names      = []string{"README.md", "README", "README.txt", "README.markdown"}
-	remoteOnly *bool
-)
+var ()
 
-func main() {
-
-	log.SetFlags(0)
-
-	verbose := flag.Bool("v", false, "Verbose error output")
-	remoteOnly = flag.Bool("r", false, "Skip local search (as the local file may be outdated)")
-	flag.Parse()
-
-	if len(flag.Args()) != 1 {
-		usage()
-		return
-	}
-	switch flag.Args()[0] {
-	// easier than defining four flags and checking for the string "help" also:
-	case "-h", "-help", "--help", "-?", "help":
-		readme, _, err := findReadme("github.com/appliedgocode/goman")
-		if err != nil {
-			usage()
-			return
-		}
-		fmt.Println(string(mdToAnsi(readme)))
-		return
-	}
-
-	exec := flag.Args()[0]
+func run(exec string) {
 
 	// Determine the location of `exec`
 	path, err := getExecPath(exec)
@@ -100,17 +60,6 @@ func main() {
 
 	fmt.Printf("%s\n\n(Source: %s)\n\n", string(readme), source)
 
-}
-
-func usage() {
-	fmt.Print(`Usage:
-
-goman <name of Go binary>
-
-goman is man for Go binaries. It attempts to fetch the README file of a Go binary's project and displays it in the terminal, if found.
-
-`)
-	flag.Usage()
 }
 
 // getExecPath receives the name of an executable and determines its path
@@ -193,6 +142,7 @@ func findReadme(src string) (readme []byte, source string, err error) {
 // In this case, findLocalReadme uses the full path.
 func findLocalReadme(src string) (readme []byte, fp string, err error) {
 
+	names := []string{"README.md", "README", "README.txt", "README.markdown"}
 	found := false
 	var e error
 
@@ -203,13 +153,19 @@ allLoops:
 		for _, name := range names {
 			for _, source := range sources(src) {
 
+				var rf *os.File
+
 				// Create the path to the README file and open the file.
 				// If this fails, try the next GOPATH entry.
-				fp = filepath.Join(gp, "src", source, name)
-				rf, err := os.Open(fp)
+				for _, prefix := range []string{"src", filepath.Join("pkg", "mod")} {
+					fp = filepath.Join(gp, prefix, source, name)
+					rf, err := os.Open(fp)
+					if err != nil {
+						e = errors.Wrap(err, "README not found at location "+fp)
+						_ = rf.Close()
+					}
+				}
 				if err != nil {
-					e = errors.Wrap(err, "README not found at location "+fp)
-					_ = rf.Close()
 					continue
 				}
 
@@ -223,7 +179,7 @@ allLoops:
 				// Read the whole file.
 				n, err := rf.Read(readme)
 				if err != nil {
-					return readme[:n], "", errors.Wrap(err, "Error reading from file "+fp)
+					return readme[:n], "", errors.Wrap(err, "error reading from file "+fp)
 				}
 				_ = rf.Close()
 				found = true
@@ -233,16 +189,13 @@ allLoops:
 	}
 
 	if !found {
-		return nil, "", errors.Wrapf(e, "No README found for %s in any of %s\n", src, gopath())
+		return nil, "", errors.Wrapf(e, "no README found for %s in any of %s\n", src, gopath())
 	}
 
 	return readme, fp, err
 }
 
-// findRemoteReadme is a helper function for findReadme. It attempts to locate the README in the remote repository at either of: -
-// - http(s)://host.com/<user>/<project>/blob/master/<readme name>
-// - http(s)://host.com/<user>/<project>/blob/master/cmd/<cmdname>/<readme name>
-
+// stripModVersion strips a version suffix from a path.
 // Go get may cache repositories locally under $GOPATH/pkg/mod/, appending a
 // version string to the repository path. Before reaching out to the remote repository,
 // this version string must be stripped from the path.
@@ -254,6 +207,9 @@ func stripModVersion(path string) string {
 	return path
 }
 
+// findRemoteReadme is a helper function for findReadme. It attempts to locate the README in the remote repository at either of: -
+// - http(s)://host.com/<user>/<project>/blob/master/<readme name>
+// - http(s)://host.com/<user>/<project>/blob/master/cmd/<cmdname>/<readme name>
 func findRemoteReadme(src string) (readme []byte, url string, err error) {
 
 	var e error
@@ -275,7 +231,7 @@ func findRemoteReadme(src string) (readme []byte, url string, err error) {
 		}
 	}
 
-	return nil, "", errors.Wrap(e, "Failed to retrieve README")
+	return nil, "", errors.Wrap(e, "failed to retrieve README")
 }
 
 func httpGetReadme(url string) ([]byte, error) {
@@ -286,7 +242,7 @@ func httpGetReadme(url string) ([]byte, error) {
 
 	response, err := client.Get(url)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed downloading the README from "+url)
+		return nil, errors.Wrap(err, "failed downloading the README from "+url)
 	}
 
 	if response.StatusCode != 200 {
@@ -296,7 +252,7 @@ func httpGetReadme(url string) ([]byte, error) {
 	r := bufio.NewReader(response.Body)
 	readme, err := r.ReadBytes(0)
 	if err != nil && err != io.EOF {
-		return nil, errors.Wrap(err, "Error reading README from HTTP response")
+		return nil, errors.Wrap(err, "error reading README from HTTP response")
 	}
 
 	return readme, nil

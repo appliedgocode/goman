@@ -45,7 +45,7 @@ func Test_findLocalReadme(t *testing.T) {
 		//	wantFp     string
 		wantErr bool
 	}{
-		{"./testdata/goman_macos", args{"github.com/christophberger/goman"}, false},
+		{"./testdata/goman_macos", args{"github.com/appliedgocode/goman"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

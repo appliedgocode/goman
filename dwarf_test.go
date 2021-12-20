@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func Test_getMainPath(t *testing.T) {
 	type args struct {
@@ -12,9 +15,9 @@ func Test_getMainPath(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{"ELF", args{"testdata/goman_linux"}, "github.com/christophberger/goman", false},
-		{"Mach-O", args{"testdata/goman_macos"}, "github.com/christophberger/goman", false},
-		{"PE", args{"testdata/goman.exe"}, "github.com/christophberger/goman", false},
+		{"ELF", args{"testdata/goman_linux"}, pwd(), false},
+		{"Mach-O", args{"testdata/goman_macos"}, pwd(), false},
+		{"PE", args{"testdata/goman.exe"}, pwd(), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -28,4 +31,10 @@ func Test_getMainPath(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Attempt to get the working dir, ignore any error intentionally
+func pwd() string {
+	wd, _ := os.Getwd()
+	return wd
 }
