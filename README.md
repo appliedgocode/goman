@@ -121,6 +121,18 @@ In its current state, `goman` is little more than a proof of concept. Bugs certa
 
 ## Changelog
 
+### v0.2.3
+
+Large update to implement a simpler and more reliable method of getting the readme path for binaries built with Module support.
+
+TODOs:
+- Support vanity module paths
+- Determine semver tag, in order to fetch the readme version that matches with the compiled version
+
+### v0.2.2 (2021-04-23)
+
+- Add goreleaser.yml
+- Various fixes
 ### v0.2.1 (2017-07-04)
 
 Fix stripping prefix from absolute path on Windows (PR #5)

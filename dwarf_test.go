@@ -5,29 +5,34 @@ import (
 	"testing"
 )
 
-func Test_getMainPath(t *testing.T) {
+func Test_getMainPathDwarf(t *testing.T) {
 	type args struct {
 		file string
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    string
+		name string
+		args args
+		want struct {
+			path, ver string
+		}
 		wantErr bool
 	}{
-		{"ELF", args{"testdata/goman_linux"}, pwd(), false},
-		{"Mach-O", args{"testdata/goman_macos"}, pwd(), false},
-		{"PE", args{"testdata/goman.exe"}, pwd(), false},
+		{"ELF", args{"testdata/goman_linux"}, struct{ path, ver string }{path: pwd(), ver: ""}, false},
+		{"Mach-O", args{"testdata/goman_macos"}, struct{ path, ver string }{path: pwd(), ver: ""}, false},
+		{"PE", args{"testdata/goman.exe"}, struct{ path, ver string }{path: pwd(), ver: ""}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := getMainPath(tt.args.file)
+			path, ver, err := getMainPathDwarf(tt.args.file)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("getMainPath() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("getMainPathDwarf() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("getMainPath() = %v, want %v", got, tt.want)
+			if path != tt.want.path {
+				t.Errorf("getMainPathDwarf() path = %v, want %v", path, tt.want.path)
+			}
+			if ver != tt.want.ver {
+				t.Errorf("getMainPathDwarf() ver = %v, want %v", ver, tt.want.ver)
 			}
 		})
 	}

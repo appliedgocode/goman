@@ -166,13 +166,17 @@ func getTable(file string) (*gosym.Table, error) {
 	return t, nil
 }
 
-func getMainPath(file string) (string, error) {
+func getMainPathDwarf(file string) (string, string, error) {
 	table, err := getTable(file)
 	if err != nil {
-		return "", errors.Wrap(err, "main path not found")
+		return "", "", errors.Wrap(err, "main path not found (getTable)")
 	}
-	path, _, _ := table.PCToLine(table.LookupFunc("main.main").Entry)
-	return stripPath(filepath.Dir(path)), nil
+	gosymFunc := table.LookupFunc("main.main")
+	if gosymFunc == nil {
+		return "", "", errors.Wrap(err, "main path not found (LookupFunc)")
+	}
+	path, _, _ := table.PCToLine(gosymFunc.Entry)
+	return stripPath(filepath.Dir(path)), "", nil
 }
 
 // strip path strips the GOPATH prefix from the raw source code path

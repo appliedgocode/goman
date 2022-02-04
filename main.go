@@ -38,7 +38,6 @@ goman is man for Go binaries. It attempts to fetch the README file of a Go binar
 }
 
 var (
-	names      = []string{"README.md", "README", "README.txt", "README.markdown"}
 	remoteOnly *bool
 	verbose    *bool
 )
@@ -58,7 +57,7 @@ func main() {
 	switch flag.Args()[0] {
 	// easier than defining four flags and checking for the string "help" also:
 	case "-h", "-help", "--help", "-?", "help":
-		readme, _, err := findReadme("github.com/appliedgocode/goman")
+		readme, _, err := findReadme("github.com/appliedgocode/goman", "")
 		if err != nil {
 			usage()
 			return

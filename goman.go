@@ -5,6 +5,7 @@ package main
 
 import (
 	"bufio"
+	"debug/buildinfo"
 	"fmt"
 	"go/build"
 	"io"
@@ -13,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -22,7 +24,9 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-var ()
+var (
+	names = []string{"README.md", "README", "README.txt", "readme.md", "readme", "readme.txt", "README.MD", "README.TXT"}
+)
 
 func run(exec string) {
 
@@ -37,7 +41,7 @@ func run(exec string) {
 	}
 
 	// Extract the source path from the binary
-	src, err := getMainPath(path)
+	src, ver, err := getMainPathAndVersion(path)
 	if err != nil {
 		log.Println("No source path in", path, "-", exec, "is perhaps no Go binary")
 		if *verbose {
@@ -47,9 +51,9 @@ func run(exec string) {
 	}
 
 	// Find the README
-	readme, source, err := findReadme(src)
+	readme, source, err := findReadme(src, ver)
 	if err != nil {
-		log.Println("No README found for", exec, "at", src)
+		log.Println("No README found for", exec, "in", src)
 		if *verbose {
 			log.Println(errors.WithStack(err))
 		}
@@ -60,6 +64,21 @@ func run(exec string) {
 
 	fmt.Printf("%s\n\n(Source: %s)\n\n", string(readme), source)
 
+}
+
+// getMainPathAndVersion fetches the main maodule path from the binary>'s
+// build info, or, if the binary is from the pre-module era,
+// from the respective info in the symbol table.
+func getMainPathAndVersion(file string) (string, string, error) {
+	bi, err := buildinfo.ReadFile(file)
+	if err != nil {
+		return getMainPathDwarf(file)
+	}
+	version := bi.Main.Version
+	if version == "(devel)" {
+		version = ""
+	}
+	return bi.Path, version, nil
 }
 
 // getExecPath receives the name of an executable and determines its path
@@ -111,7 +130,13 @@ func gopath() []string {
 
 	gp := os.Getenv("GOPATH")
 	if gp == "" {
-		return []string{build.Default.GOPATH}
+		cmd := exec.Command("go", "env", "GOPATH")
+		gpb, err := cmd.CombinedOutput()
+		if err != nil {
+			return []string{build.Default.GOPATH}
+		}
+		// CombinedOutput seems to include the newline char - remove it
+		gp = strings.TrimRight(string(gpb), "\n")
 	}
 
 	return strings.Split(gp, pathssep())
@@ -119,16 +144,19 @@ func gopath() []string {
 
 // findReadme attempts to find the file README.md either locally
 // or in the remote repository of the executable.
-func findReadme(src string) (readme []byte, source string, err error) {
+func findReadme(src, ver string) (readme []byte, source string, err error) {
+
+	src = stripModVersion(src)
+	srcs := sources(src)
 
 	if !*remoteOnly {
-		readme, source, err = findLocalReadme(src)
+		readme, source, err = findLocalReadme(srcs)
 		if err == nil {
 			return readme, source, nil
 		}
 	}
 
-	readme, source, err = findRemoteReadme(src)
+	readme, source, err = findRemoteReadme(srcs, ver)
 	if err != nil {
 		return nil, "", errors.Wrap(err, "Did not find a readme locally nor in the remote repository")
 	}
@@ -140,9 +168,8 @@ func findReadme(src string) (readme []byte, source string, err error) {
 // locally in $GOPATH/src/<src> or $GOPATH/pkg/mod/<src>.
 // If the path is absolute, this means it neither contains /src/ nor /pkg/mod/.
 // In this case, findLocalReadme uses the full path.
-func findLocalReadme(src string) (readme []byte, fp string, err error) {
+func findLocalReadme(sources []string) (readme []byte, fp string, err error) {
 
-	names := []string{"README.md", "README", "README.txt", "README.markdown"}
 	found := false
 	var e error
 
@@ -151,28 +178,32 @@ allLoops:
 	// and also up the directory tree (in case the command is a subproject)
 	for _, gp := range gopath() {
 		for _, name := range names {
-			for _, source := range sources(src) {
+			for _, source := range sources {
 
 				var rf *os.File
+				found := false
 
 				// Create the path to the README file and open the file.
 				// If this fails, try the next GOPATH entry.
 				for _, prefix := range []string{"src", filepath.Join("pkg", "mod")} {
 					fp = filepath.Join(gp, prefix, source, name)
 					rf, err := os.Open(fp)
-					if err != nil {
-						e = errors.Wrap(err, "README not found at location "+fp)
-						_ = rf.Close()
+					if err == nil {
+						found = true
+						break
 					}
+					e = errors.Wrap(err, "README not found at location "+fp)
+					_ = rf.Close()
 				}
-				if err != nil {
+
+				if !found {
 					continue
 				}
 
 				// Allocate the slice for reading the file.
 				fi, err := rf.Stat()
 				if err != nil {
-					return nil, "", errors.Wrap(err, "Cannot determine file stats")
+					return nil, "", errors.Wrapf(err, "Cannot determine file stats for %s", fp)
 				}
 				readme = make([]byte, fi.Size())
 
@@ -182,14 +213,13 @@ allLoops:
 					return readme[:n], "", errors.Wrap(err, "error reading from file "+fp)
 				}
 				_ = rf.Close()
-				found = true
 				break allLoops
 			}
 		}
 	}
 
 	if !found {
-		return nil, "", errors.Wrapf(e, "no README found for %s in any of %s\n", src, gopath())
+		return nil, "", errors.Wrapf(e, "no README found for in any of %v\n", sources)
 	}
 
 	return readme, fp, err
@@ -208,9 +238,9 @@ func stripModVersion(path string) string {
 }
 
 // findRemoteReadme is a helper function for findReadme. It attempts to locate the README in the remote repository at either of: -
-// - http(s)://host.com/<user>/<project>/blob/master/<readme name>
-// - http(s)://host.com/<user>/<project>/blob/master/cmd/<cmdname>/<readme name>
-func findRemoteReadme(src string) (readme []byte, url string, err error) {
+// - http(s)://host.com/<user>/<project>/blob/main/<readme name>
+// - http(s)://host.com/<user>/<project>/blob/main/cmd/<cmdname>/<readme name>
+func findRemoteReadme(sources []string, ver string) (readme []byte, url string, err error) {
 
 	var e error
 	// TODO: implement resolveVanityImport
@@ -219,15 +249,17 @@ func findRemoteReadme(src string) (readme []byte, url string, err error) {
 	// 	return nil, "", errors.Wrap(err, "error resolving vanity import for "+src)
 	// }
 
-	src = stripModVersion(src)
-	for _, source := range sources(src) {
-		url = getReadmeURL(source)
+	for _, source := range sources {
+		urls := possibleReadmeURLs(source, ver)
 		for _, name := range names {
-			readme, e = httpGetReadme(url + name)
-			if e == nil {
-				return readme, url, nil
+			for _, url := range urls {
+				// TODO run all HTTP calls concurrently
+				readme, e = httpGetReadme(url + name)
+				if e == nil {
+					return readme, url, nil
+				}
+				err = errors.Wrap(e, "") // collect all errors from the loop
 			}
-			err = errors.Wrap(e, "") // collect all errors from the loop
 		}
 	}
 
@@ -235,7 +267,6 @@ func findRemoteReadme(src string) (readme []byte, url string, err error) {
 }
 
 func httpGetReadme(url string) ([]byte, error) {
-
 	var client = &http.Client{
 		Timeout: time.Second * 10,
 	}
@@ -261,27 +292,67 @@ func httpGetReadme(url string) ([]byte, error) {
 // source returns a slice containing `src` and all paths
 // when walking the directory tree up to the root path.
 //
-// Example:
+// Example 1:
 //
-// src = github.com/user/project/subdir/subdir
+// src = github.com/user/project/.../subdir/v2
 // Then the slice contains:
-// github.com/user/project/subdir/subdir
-// github.com/user/project/subdir
+// github.com/user/project/.../subdir/v2
+// github.com/user/project/.../subdir
 // github.com/user/project
-// github.com/user
-// github.com
-func sources(src string) []string {
-	strings.Trim(src, "/")
+//
+// Example 2:
+// src = github.com/user/project/v2/.../subdir
+// Then the slice contains:
+// github.com/user/project/v2/.../subdir
+// github.com/user/project/.../subdir
+// github.com/user/project/v2
+// github.com/user/project
+func sources(src string) (srcs []string) {
+	src = strings.Trim(src, "/")
 	dirs := strings.Split(src, "/")
-	paths := make([]string, 0, len(dirs))
 
-	for len(dirs) > 0 {
-		paths = append(paths, strings.Join(dirs, "/"))
-		dirs = dirs[:len(dirs)-1]
+	versionRe := regexp.MustCompile(`(.*)(/v\d+)(/.*|$)`) // detect v2, v3,...
+	isVersioned, preVersion, version, postVersion := func() (bool, string, string, string) {
+		match := versionRe.FindStringSubmatch(src)
+		if match != nil {
+			// path with version info found. Remove version string.
+			// TODO: instead of this workaround, find the readme at the proper git branch
+			return true, match[1], match[2], match[3]
+		}
+		return false, "", "", ""
+	}()
+
+	lenProjPath := 3
+	if isVersioned && len(postVersion) > 0 {
+		// version string occurs after project path but before subdir path (if any)
+		lenProjPath = 4
 	}
-	return paths
+	hasSubdirs := len(dirs) > lenProjPath
+
+	upper := 3
+	if len(dirs) < 3 {
+		upper = len(dirs)
+	}
+	pathNoSubdirsNoVersion := strings.Join(dirs[0:upper], "/")
+	pathNoVersion := preVersion + postVersion
+
+	// The sequence of possible README paths is crucial for fast retrieval
+	// with as few HTTP requests as possible. The most likely locations should come first.
+
+	switch {
+	case !isVersioned && !hasSubdirs:
+		srcs = append(srcs, src)
+	case isVersioned && !hasSubdirs:
+		srcs = append(srcs, src, pathNoVersion)
+	case !isVersioned && hasSubdirs:
+		srcs = append(srcs, src, pathNoSubdirsNoVersion)
+	case isVersioned && hasSubdirs:
+		srcs = append(srcs, src, pathNoVersion, pathNoSubdirsNoVersion+version, pathNoSubdirsNoVersion)
+	}
+	return srcs
 }
 
+// TODO:
 // Resolve any redirects to get the correct URL to the remote repository.
 // func resolveVanityImports(src string) (string, error) {
 // 	var client = &http.Client{
@@ -300,7 +371,7 @@ func sources(src string) []string {
 // 	// strip the https:// prefix
 // }
 
-// getReadmeURL receives the relative path to the project and returns
+// possibleReadmeURLs receives the relative path to the project and returns
 // the URL to the raw README.md file (WITHOUT the file name itself, but
 // WITH a trailing slash).
 // Currently it knows how to do this for github.com and gitlab.com only.
@@ -309,29 +380,47 @@ func sources(src string) []string {
 // Examples:
 //
 // From github.com/ec1oud/mdcat to:
-// https://raw.githubusercontent.com/ec1oud/mdcat/master/
+// https://github.com/ec1oud/mdcat/blob/<branch>/
 //
 // From gitlab.com/SporeDB/sporedb to:
-// https://gitlab.com/SporeDB/sporedb/raw/master/
-
-func getReadmeURL(src string) string {
+// https://gitlab.com/SporeDB/sporedb/-/blob/<branch>/
+//
+// From git.sr.ht/~ghost08/photon to:
+// https://git.sr.ht/~ghost08/photon/tree/<branch>/item/
+func possibleReadmeURLs(src, ver string) []string {
 
 	prefix := "https://"
 	gh := "github.com/"
 	gl := "gitlab.com/"
-	ghraw := "raw.githubusercontent.com/"
+	sh := "https://git.sr.ht/"
+	// TODO: add source hut - https://git.sr.ht/~<user>/<project>/tree/<branch>/item/README.md
+	branches := []string{"main", "trunk", "master"}
+
+	urls := []string{}
 
 	src = strings.Trim(filepath.ToSlash(src), "/")
 
-	if len(src) >= len(prefix)+len(gh) && src[:len(gh)] == gh {
-		return prefix + ghraw + src[len(gh):] + "/master/"
+	for _, branch := range branches {
+
+		// Process github paths
+		if len(src) >= len(gh) && src[:len(gh)] == gh {
+			urls = append(urls, fmt.Sprintf("%sraw.githubusercontent.com/%s/%s/", prefix, src[len(gl):], branch))
+		}
+
+		// Process gitlab paths
+		if len(src) >= len(gl) && src[:len(gl)] == gl {
+			// TODO -> raw URL includes the commit hash
+			urls = append(urls, fmt.Sprintf("%s%s/-/raw/%s/", prefix, src, branch))
+		}
+
+		// Process sourcehut paths
+		if len(src) >= len(sh) && src[:len(sh)] == sh {
+			urls = append(urls, fmt.Sprintf("%s%s/blob/%s/", prefix, src, branch))
+		}
 	}
 
-	if len(src) >= len(prefix)+len(gl) && src[:len(gl)] == gl {
-		return prefix + src + "/raw/master/"
-	}
-
-	return prefix + src + "/"
+	urls = append(urls, fmt.Sprintf("%s%s/", prefix, src))
+	return urls
 }
 
 func mdToAnsi(readme []byte) []byte {
