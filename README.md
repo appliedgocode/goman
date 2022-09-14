@@ -51,7 +51,7 @@ On the release pages, open the latest release and download the binary that match
 
 You need a Go toolchain installed.
 
-    go get github.com/appliedgocode/goman@latest
+    go install github.com/appliedgocode/goman@latest
 
 This downloads and installs `goman` to `$(go env GOPATH)/bin` (or `$(go env GOBIN)` if set). 
 
