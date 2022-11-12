@@ -1,5 +1,7 @@
 # goman - the missing man page for Go binaries
 
+[![go-recipes](https://raw.githubusercontent.com/nikolaydubina/go-recipes/main/badge.svg?raw=true)](https://github.com/nikolaydubina/go-recipes)
+
 > Note: Find the latest version here: [appliedgocode/goman](https://github.com/appliedgocode/goman). 
 
 ![goman logo](goman.png)
