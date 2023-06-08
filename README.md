@@ -57,6 +57,10 @@ You need a Go toolchain installed.
 
 This downloads and installs `goman` to `$(go env GOPATH)/bin` (or `$(go env GOBIN)` if set). 
 
+#### Arch Linux
+
+Using an AUR helper application, such as `paru -S goman-git`.
+
 ## Shell Integration
 
 `goman` can blend in with the standard `man` command. 
