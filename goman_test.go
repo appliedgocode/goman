@@ -17,27 +17,27 @@ func Test_getReadmeURL(t *testing.T) {
 		{"github",
 			"github.com/user/repo",
 			[]string{
-				"https://github.com/user/repo/blob/main/",
-				"https://github.com/user/repo/blob/trunk/",
-				"https://github.com/user/repo/blob/master/",
+				"https://raw.githubusercontent.com/user/repo/main/",
+				"https://raw.githubusercontent.com/user/repo/trunk/",
+				"https://raw.githubusercontent.com/user/repo/master/",
 				"https://github.com/user/repo/",
 			},
 			false},
 		{"githubcmd1",
 			"github.com/user/repo/cmd/cmdname",
 			[]string{
-				"https://github.com/user/repo/cmd/cmdname/blob/main/",
-				"https://github.com/user/repo/cmd/cmdname/blob/trunk/",
-				"https://github.com/user/repo/cmd/cmdname/blob/master/",
+				"https://raw.githubusercontent.com/user/repo/cmd/cmdname/main/",
+				"https://raw.githubusercontent.com/user/repo/cmd/cmdname/trunk/",
+				"https://raw.githubusercontent.com/user/repo/cmd/cmdname/master/",
 				"https://github.com/user/repo/cmd/cmdname/",
 			},
 			false},
 		{"gitlab",
 			"gitlab.com/user/repo",
 			[]string{
-				"https://gitlab.com/user/repo/-/blob/main/",
-				"https://gitlab.com/user/repo/-/blob/trunk/",
-				"https://gitlab.com/user/repo/-/blob/master/",
+				"https://gitlab.com/user/repo/-/raw/main/",
+				"https://gitlab.com/user/repo/-/raw/trunk/",
+				"https://gitlab.com/user/repo/-/raw/master/",
 				"https://gitlab.com/user/repo/",
 			},
 			false},
@@ -53,11 +53,11 @@ func Test_getReadmeURL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := possibleReadmeURLs(tt.src, "") // TODO - also test version strings
 			if len(got) != len(tt.want) {
-				t.Errorf("getRawReadmeURL() = %v, want %v", got, tt.want)
+				t.Errorf("getRawReadmeURL(): %s\ngot \n%v\n want \n%v", tt.name, got, tt.want)
 			}
 			for i := range got {
 				if got[i] != tt.want[i] {
-					t.Errorf("getRawReadmeURL() = %v, want %v", got, tt.want)
+					t.Errorf("getRawReadmeURL(): %s\ngot \n%v\n want \n%v", tt.name, got, tt.want)
 				}
 			}
 		})
@@ -114,7 +114,7 @@ func Test_sources(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := sources(tt.args.src); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("sources() = %v, want %v", got, tt.want)
+				t.Errorf("sources(): %s\ngot %v\nwant %v", tt.name, got, tt.want)
 			}
 		})
 	}
