@@ -323,7 +323,8 @@ func sources(src string) (srcs []string) {
 	}()
 
 	lenProjPath := 3
-	if isVersioned && len(postVersion) > 0 {
+	if isVersioned && (len(postVersion) > 0 || // github.com/org/repo/v2/subdir
+		len(dirs) == 4) { // github.com/org/repo/v2 (no subdir)
 		// version string occurs after project path but before subdir path (if any)
 		lenProjPath = 4
 	}
