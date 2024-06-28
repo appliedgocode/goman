@@ -47,8 +47,8 @@ signs:
       ]
 brews:
   - repository:
-      owner: appliedgocode
-      name: tap
+      owner: appliedgo
+      name: tools
     commit_author:
       name: christophberger
       email: github@christophberger.com
