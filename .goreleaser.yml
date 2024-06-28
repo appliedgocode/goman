@@ -48,7 +48,7 @@ signs:
 brews:
   - repository:
       owner: appliedgo
-      name: tools
+      name: homebrew-tools
     commit_author:
       name: christophberger
       email: github@christophberger.com
