@@ -21,7 +21,7 @@ import (
 
 	"github.com/ec1oud/blackfriday"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 var (
@@ -438,7 +438,7 @@ func mdToAnsi(readme []byte) []byte {
 	ansiFlags := 0
 
 	// Get the current terminal width, or 80 if the width cannot be determined
-	w, _, err := terminal.GetSize(int(os.Stdout.Fd()))
+	w, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
 		w = 80
 	}
