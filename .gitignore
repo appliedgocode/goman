@@ -3,5 +3,6 @@ debug
 *.cmproj
 goman.afdesign
 goman
-goman.1*
+goman.1
+goman.1.gz
 dist/*
