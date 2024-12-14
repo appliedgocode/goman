@@ -4,6 +4,7 @@ before:
   hooks:
     - go mod tidy
     - go mod download
+    - pandoc -s -t man goman.1.md -o goman.1
 builds:
   - env:
       - CGO_ENABLED=0
@@ -21,6 +22,7 @@ archives:
     files:
       - README.md
       - LICENSE*
+      - goman.1
     wrap_in_directory: true
 checksum:
   name_template: "checksums.txt"
@@ -56,3 +58,4 @@ brews:
     description: "The missing man pages for Go binaries"
     license: "BSD-3-Clause"
     skip_upload: auto
+    extra_install: man1.install goman.1

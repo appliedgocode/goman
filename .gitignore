@@ -3,4 +3,5 @@ debug
 *.cmproj
 goman.afdesign
 goman
+goman.1*
 dist/*
