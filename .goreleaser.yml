@@ -59,4 +59,4 @@ brews:
     license: "BSD-3-Clause"
     skip_upload: auto
     extra_install: |
-      man1.install goman.1
+      man1.install "goman.1"
