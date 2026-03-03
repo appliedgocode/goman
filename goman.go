@@ -330,10 +330,7 @@ func sources(src string) (srcs []string) {
 	}
 	hasSubdirs := len(dirs) > lenProjPath
 
-	upper := 3
-	if len(dirs) < 3 {
-		upper = len(dirs)
-	}
+	upper := min(len(dirs), 3)
 	pathNoSubdirsNoVersion := strings.Join(dirs[0:upper], "/")
 	pathNoVersion := preVersion + postVersion
 
