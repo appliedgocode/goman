@@ -1,6 +1,6 @@
 module github.com/appliedgocode/goman
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/ec1oud/blackfriday v0.0.0-20170301190602-4575f80c9153
