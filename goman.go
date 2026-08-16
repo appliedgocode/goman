@@ -380,7 +380,7 @@ func sources(src string) (srcs []string) {
 // Examples:
 //
 // From github.com/ec1oud/mdcat to:
-// https://github.com/ec1oud/mdcat/blob/<branch>/
+// https://raw.githubusercontent.com/ec1oud/mdcat/<branch>/
 //
 // From gitlab.com/SporeDB/sporedb to:
 // https://gitlab.com/SporeDB/sporedb/-/blob/<branch>/
