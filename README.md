@@ -154,3 +154,7 @@ Change search strategy for README file to cover all possible cases. (Fixes issue
 ### v0.1.2 (2017-06-27)
 
 Fix slice panic if URL path is shorter than "github.com" (issue #1)
+
+### v0.4.0 (2024-12-14)
+
+Add man page (created from Markdown by `pandoc`, installed via Homebrew's `man1.install`)

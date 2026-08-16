@@ -1,9 +1,10 @@
-# This is an example goreleaser.yaml file with some sane defaults.
 # Make sure to check the documentation at http://goreleaser.com
+version: 2
 before:
   hooks:
     - go mod tidy
     - go mod download
+    - pandoc -s -t man goman.1.md -o goman.1
 builds:
   - env:
       - CGO_ENABLED=0
@@ -11,24 +12,22 @@ builds:
       - linux
       - windows
       - darwin
+    goarch:
+      - amd64
+      - arm64
 archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
-    format_overrides:
+  - format_overrides:
       - goos: windows
         format: zip
     files:
       - README.md
       - LICENSE*
+      - goman.1
     wrap_in_directory: true
 checksum:
   name_template: "checksums.txt"
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  version_template: "{{ .Tag }}-next"
 changelog:
   sort: asc
   filters:
@@ -49,9 +48,9 @@ signs:
         "${artifact}",
       ]
 brews:
-  - tap:
-      owner: appliedgocode
-      name: tap
+  - repository:
+      owner: appliedgo
+      name: homebrew-tools
     commit_author:
       name: christophberger
       email: github@christophberger.com
@@ -59,3 +58,5 @@ brews:
     description: "The missing man pages for Go binaries"
     license: "BSD-3-Clause"
     skip_upload: auto
+    extra_install: |
+      man1.install "goman.1"

@@ -35,9 +35,9 @@ func Test_getReadmeURL(t *testing.T) {
 		{"gitlab",
 			"gitlab.com/user/repo",
 			[]string{
-				"https://gitlab.com/user/repo/-/blob/main/",
-				"https://gitlab.com/user/repo/-/blob/trunk/",
-				"https://gitlab.com/user/repo/-/blob/master/",
+				"https://gitlab.com/user/repo/-/raw/main/",
+				"https://gitlab.com/user/repo/-/raw/trunk/",
+				"https://gitlab.com/user/repo/-/raw/master/",
 				"https://gitlab.com/user/repo/",
 			},
 			false},
@@ -53,11 +53,11 @@ func Test_getReadmeURL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := possibleReadmeURLs(tt.src, "") // TODO - also test version strings
 			if len(got) != len(tt.want) {
-				t.Errorf("getRawReadmeURL() = %v, want %v", got, tt.want)
+				t.Errorf("getRawReadmeURL(): %s\ngot \n%v\n want \n%v", tt.name, got, tt.want)
 			}
 			for i := range got {
 				if got[i] != tt.want[i] {
-					t.Errorf("getRawReadmeURL() = %v, want %v", got, tt.want)
+					t.Errorf("getRawReadmeURL(): %s\ngot \n%v\n want \n%v", tt.name, got, tt.want)
 				}
 			}
 		})
@@ -114,7 +114,7 @@ func Test_sources(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := sources(tt.args.src); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("sources() = %v, want %v", got, tt.want)
+				t.Errorf("sources(): %s\ngot %v\nwant %v", tt.name, got, tt.want)
 			}
 		})
 	}

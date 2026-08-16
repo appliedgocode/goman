@@ -21,7 +21,7 @@ import (
 
 	"github.com/ec1oud/blackfriday"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 var (
@@ -323,16 +323,14 @@ func sources(src string) (srcs []string) {
 	}()
 
 	lenProjPath := 3
-	if isVersioned && len(postVersion) > 0 {
+	if isVersioned && (len(postVersion) > 0 || // github.com/org/repo/v2/subdir
+		len(dirs) == 4) { // github.com/org/repo/v2 (no subdir)
 		// version string occurs after project path but before subdir path (if any)
 		lenProjPath = 4
 	}
 	hasSubdirs := len(dirs) > lenProjPath
 
-	upper := 3
-	if len(dirs) < 3 {
-		upper = len(dirs)
-	}
+	upper := min(len(dirs), 3)
 	pathNoSubdirsNoVersion := strings.Join(dirs[0:upper], "/")
 	pathNoVersion := preVersion + postVersion
 
@@ -437,7 +435,7 @@ func mdToAnsi(readme []byte) []byte {
 	ansiFlags := 0
 
 	// Get the current terminal width, or 80 if the width cannot be determined
-	w, _, err := terminal.GetSize(int(os.Stdout.Fd()))
+	w, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
 		w = 80
 	}
