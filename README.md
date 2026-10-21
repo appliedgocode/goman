@@ -158,3 +158,7 @@ Fix slice panic if URL path is shorter than "github.com" (issue #1)
 ### v0.4.0 (2024-12-14)
 
 Add man page (created from Markdown by `pandoc`, installed via Homebrew's `man1.install`)
+
+### v0.4.1 (2026-10-21)
+
+Bump Go versionto 1.27.3
